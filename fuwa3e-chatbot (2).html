@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>FUWA3e — Trợ lý tài liệu</title>
+<style>
+  :root{
+    --leaf-900:#1F3A24;
+    --leaf-700:#3F6C4C;
+    --leaf-500:#6E9B72;
+    --leaf-100:#E7EFE3;
+    --cream:#F7F4EA;
+    --card:#FFFFFF;
+    --tangerine-600:#D9691F;
+    --tangerine-500:#E7873A;
+    --ink:#20281F;
+    --ink-soft:#66705F;
+    --hairline:#DFDACB;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+  }
+  .app{
+    width:100%;
+    max-width:560px;
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    background:var(--card);
+    box-shadow:0 0 40px rgba(31,58,36,0.08);
+  }
+  header{
+    padding:18px 20px 16px;
+    background:linear-gradient(135deg,var(--leaf-900),var(--leaf-700));
+    color:#fff;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute;
+    right:-30px;
+    top:-30px;
+    width:140px;
+    height:140px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(231,135,58,0.35),transparent 70%);
+  }
+  .mark{
+    width:42px;height:42px;border-radius:12px;
+    background:var(--tangerine-500);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:18px;color:#2a1500;
+    flex-shrink:0;
+    box-shadow:inset 0 -3px 0 rgba(0,0,0,0.15);
+  }
+  .htext{position:relative; z-index:1;}
+  .htext .name{font-weight:700; font-size:16.5px; letter-spacing:0.2px;}
+  .htext .sub{font-size:12.5px; opacity:0.85; margin-top:2px;}
+
+  .chips-bar{
+    display:flex;
+    gap:8px;
+    padding:12px 16px;
+    overflow-x:auto;
+    background:var(--leaf-100);
+    border-bottom:1px solid var(--hairline);
+  }
+  .chip{
+    flex-shrink:0;
+    padding:7px 13px;
+    border-radius:999px;
+    background:#fff;
+    border:1px solid var(--hairline);
+    font-size:12.5px;
+    color:var(--leaf-700);
+    cursor:pointer;
+    white-space:nowrap;
+    font-weight:600;
+    transition:transform .12s ease, background .12s ease;
+  }
+  .chip:hover{ background:var(--leaf-700); color:#fff; transform:translateY(-1px); }
+
+  .messages{
+    flex:1;
+    overflow-y:auto;
+    padding:18px 16px 8px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .msg{ display:flex; gap:9px; max-width:100%; }
+  .msg.user{ flex-direction:row-reverse; }
+  .avatar{
+    width:28px;height:28px;border-radius:9px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px; font-weight:700;
+  }
+  .avatar.bot{ background:var(--leaf-100); color:var(--leaf-700); }
+  .avatar.user{ background:var(--tangerine-500); color:#2a1500; }
+
+  .bubble{
+    padding:11px 14px;
+    border-radius:var(--radius);
+    font-size:14.5px;
+    line-height:1.5;
+    max-width:78%;
+  }
+  .msg.bot .bubble{
+    background:var(--leaf-100);
+    color:var(--ink);
+    border-top-left-radius:4px;
+  }
+  .msg.user .bubble{
+    background:linear-gradient(135deg,var(--tangerine-500),var(--tangerine-600));
+    color:#fff;
+    border-top-right-radius:4px;
+  }
+  .typing{ display:flex; gap:4px; padding:4px 2px;}
+  .typing span{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--leaf-700); opacity:0.5;
+    animation:bounce 1.1s infinite ease-in-out;
+  }
+  .typing span:nth-child(2){animation-delay:0.15s;}
+  .typing span:nth-child(3){animation-delay:0.3s;}
+  @keyframes bounce{ 0%,60%,100%{transform:translateY(0); opacity:0.4;} 30%{transform:translateY(-4px); opacity:1;} }
+
+  .results{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    margin-top:9px;
+    max-width:88%;
+  }
+  .result-card{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    background:#fff;
+    border:1px solid var(--hairline);
+    border-radius:12px;
+    text-decoration:none;
+    color:var(--ink);
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .result-card:hover{ border-color:var(--leaf-500); background:var(--leaf-100); }
+  .result-ico{
+    width:30px;height:30px;border-radius:8px;flex-shrink:0;
+    background:var(--leaf-700);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;
+  }
+  .result-text{ flex:1; min-width:0; }
+  .result-text .rname{ font-size:13.3px; font-weight:600; }
+  .result-text .rpath{ font-size:11px; color:var(--ink-soft); margin-top:1px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .result-arrow{ color:var(--leaf-500); font-size:15px; flex-shrink:0; }
+
+  .composer{
+    display:flex;
+    gap:8px;
+    padding:12px 14px;
+    border-top:1px solid var(--hairline);
+    background:#fff;
+  }
+  .composer input{
+    flex:1;
+    padding:11px 14px;
+    border-radius:999px;
+    border:1px solid var(--hairline);
+    font-size:14px;
+    outline:none;
+    font-family:inherit;
+  }
+  .composer input:focus{ border-color:var(--leaf-500); }
+  .composer button{
+    width:42px;height:42px;
+    border-radius:50%;
+    border:none;
+    background:var(--leaf-700);
+    color:#fff;
+    font-size:16px;
+    cursor:pointer;
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .12s ease;
+  }
+  .composer button:hover{ background:var(--leaf-900); }
+  .composer button:disabled{ background:var(--ink-soft); cursor:default; }
+
+  .messages::-webkit-scrollbar{ width:6px; }
+  .messages::-webkit-scrollbar-thumb{ background:var(--hairline); border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="mark">F3</div>
+    <div class="htext">
+      <div class="name">FUWA3e Assistant</div>
+      <div class="sub">Gửi link tài liệu &amp; hình ảnh sản phẩm từ Drive nội bộ</div>
+    </div>
+  </header>
+
+  <div class="chips-bar" id="chipsBar"></div>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="composer">
+    <input id="input" type="text" placeholder="Hỏi ví dụ: cho tôi ảnh sản phẩm CarFresh…" />
+    <button id="sendBtn" title="Gửi">➤</button>
+  </div>
+</div>
+
+<script id="dataset" type="application/json">
+[{"layer1": "1. Branding", "layer2": "Logo (PNG, SVG, JPG)", "name": "1. Fuwa3e - Enzyme Cleaner", "link": "https://drive.google.com/drive/folders/1_mL-vrvjTiYA-6xFMIDAvL3SC6a6WHah?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Logo (PNG, SVG, JPG)", "name": "2. Fuwa3e - CarFresh", "link": "https://drive.google.com/drive/folders/1Q4WUbyQpj2gDfJDFkmXso3AcpV3KjdYq?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Logo (PNG, SVG, JPG)", "name": "3. Fuwa3e - Babycare", "link": "https://drive.google.com/drive/folders/1c49Z3RcTmGbx3UMQ-ISqknIBP7bn3HJe?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Logo (PNG, SVG, JPG)", "name": "REFILL", "link": "https://drive.google.com/drive/folders/1CHn1cWFzN7yZSX1KDZ4EDFM-y94u9-FT?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Brand Guidelines", "name": "Brand guidelines (PDF)", "link": "https://drive.google.com/drive/folders/1siHFGXLPRR-mq0y29uDGTjN9nfWIeHOi"}, {"layer1": "1. Branding", "layer2": "POSM", "name": "1. FUWA3E - HOMECARE", "link": "https://drive.google.com/drive/folders/1841VrX-Fn_qPfqISiX5Z2oZCtJozA7YR?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "POSM", "name": "2. BABY CARE", "link": "https://drive.google.com/drive/folders/1bmbO3_o56cOJAGxsNg_uzW5qEgDBu1na?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "POSM", "name": "3. CAR FRESH", "link": "https://drive.google.com/drive/folders/17bPuhNScP6nLjISsztthheKlpyh0RHmo?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "POSM", "name": "4. REFILL FUWA", "link": "https://drive.google.com/drive/folders/12Ic1sAbsfaZCEHExOo1QJm1npTJGd43w?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "POSM", "name": "Booth sampling", "link": "https://drive.google.com/drive/folders/1rnasDzkyszGyroln4giv681xrWbmQoEP?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "POSM", "name": "icon dứa + hashtag đi sự kiện", "link": "https://drive.google.com/drive/folders/1xzi9e4XyeEVPhPltaNCk1s62Z8VrvxQZ?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Catalogue", "name": "Catalogue", "link": "https://drive.google.com/drive/folders/19kVUy8p2Nz-E8DuctyXLQgLHK8RVbEZV?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Profile", "name": "Profile Tiếng Anh", "link": "https://drive.google.com/drive/folders/1RALUnOfsgw93px1UMmlAQcD5TDUk6lM7?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Profile", "name": "Profile Tiếng việt", "link": "https://drive.google.com/drive/folders/1_hzeP0zl_EWM7Q1f_jO3IaxbOxQitAt8?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Banner online", "name": "Banner online", "link": "https://drive.google.com/drive/folders/1p73G2gFI_HjcjLZfCqSClhL52h-aK6D9?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Standee", "name": "1. FUWA3E - HOMECARE - Standee", "link": "https://drive.google.com/drive/folders/1tyg-s9o-caYyIpRqr9fNJg6yJ3QjuklG?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Standee", "name": "2. BABYCARE - Standee", "link": "https://drive.google.com/drive/folders/1p7dhG1dDbN3u0Km9LO0ois_5DX8m5Djq?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Standee", "name": "3. CAR FRESH - Standee", "link": "https://drive.google.com/drive/folders/1L9Vhhfgf2CCDi3CA0kz83kCIqz9fuHT4?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Tờ rơi", "name": "1. FUWA3E - HOMECARE - Tờ rơi", "link": "https://drive.google.com/drive/folders/1L_iF1UkrObZ2l3vsADrHeWsU47V2wFIu?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Tờ rơi", "name": "2. BABY CARE - Tờ rơi", "link": "https://drive.google.com/drive/folders/1qCeJI0Kh0LQjbvFZBuDX5cyAUxfVFZjo?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Tờ rơi", "name": "3. CAR FRESH - Tờ rơi", "link": "https://drive.google.com/drive/folders/1ui1PQxeeVRzi6ReBDMpYuyjGDB6tA6Sv?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Booth sampling", "name": "Booth sampling", "link": "https://drive.google.com/drive/folders/18CEEaPJZ6rh1R8uDff4yKJxY8BFVZurV?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Hashtag, sticker,...", "name": "HASHTAG", "link": "https://drive.google.com/drive/folders/1CykUfxd0Ece1i5INFW6OqwjzcJfAAcVC?usp=drive_link"}, {"layer1": "1. Branding", "layer2": "Hashtag, sticker,...", "name": "STICKER", "link": "https://drive.google.com/drive/folders/1cQWKtEcyBTVbIEdP4iWDABycX48lHp2T?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Hình sản phẩm", "name": "1. HOMECARE - FUWA3E ENZYME CLEANER - Ảnh sản phẩm", "link": "https://drive.google.com/drive/folders/1j8Uk744THfdZSEB10cUBLWNweQ4nmsdk?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Hình sản phẩm", "name": "2. BABYCARE - Ảnh sản phẩm", "link": "https://drive.google.com/drive/folders/1jb9Yum9URT-AgKYDX0LLtkeSQa0SIG2a?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Hình sản phẩm", "name": "3. CAR FRESH - Ảnh sản phẩm", "link": "https://drive.google.com/drive/folders/1tGbAbkDJxS5q585xVWZWg6D0Yaw9zlXU?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Hình sản phẩm", "name": "4. REFILL", "link": "https://drive.google.com/drive/folders/1IqBqZQFv5kmfNeCdxO317Op_Ea91dZX0?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Hình ảnh hoạt động", "name": "Hình ảnh hoạt động cộng đồng", "link": "https://drive.google.com/drive/folders/1qq5O0sSi5W2i1Ea907W540MRR3nuWjp-?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Hình ảnh hoạt động", "name": "Hình ảnh sale (hội chợ, trưng bày,...)", "link": "https://drive.google.com/drive/folders/1swrJWTLOCRbLcc4MbfvCAMCYXka5h4PQ?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Hình ảnh hoạt động", "name": "Hình ảnh sản xuất", "link": "https://drive.google.com/drive/folders/134X76MDnD_UqW6oTxXLeSmTwnPlBs7PO?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Ảnh lifestyle", "name": "Ảnh chụp Quà tặng doanh nghiệp", "link": "https://drive.google.com/drive/folders/15oIlpdFM6lfUaf7yPkrxDmS28R0i3TD6?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Ảnh lifestyle", "name": "Babycare - Ảnh chụp lifestyle", "link": "https://drive.google.com/drive/folders/1Cv-BAQ95yt5s6Mqh6Ip0r8m369g8tBdd?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Ảnh lifestyle", "name": "Car Fresh - Ảnh chụp lifestyle", "link": "https://drive.google.com/drive/folders/10Sp1_eikizgE4Ff3KN7dHlYc9W91YAsL?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Ảnh lifestyle", "name": "Homecare - Ảnh chụp lifestyle", "link": "https://drive.google.com/drive/folders/1B8WOue3PV7SgCBueXn5OjYfIP9Rka9Ar?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Ảnh sưu tầm", "name": "NRC - NƯỚC RỬA CHÉN", "link": "https://drive.google.com/drive/folders/1ZEfLveRlbx8FxjG0CQeZHBjQKL9gt5dr?usp=sharing"}, {"layer1": "2. Hình ảnh", "layer2": "Ảnh sưu tầm", "name": "NRTP - NGÂM RỬA THỰC PHẨM", "link": "https://drive.google.com/drive/folders/15LTJ3nTHshBpQJ9pa2NvyJg_9XGvf7ZS?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Ảnh sưu tầm", "name": "NG - NƯỚC GIẶT", "link": "https://drive.google.com/drive/folders/1l8jOiv3fJJinG7lLk35MBa0QIBbVdX6R?usp=drive_link"}, {"layer1": "2. Hình ảnh", "layer2": "Poster chương trình", "name": "Poster chương trình", "link": "https://drive.google.com/drive/folders/1BqRAJpOaKKHDQEcgIJ5DEy6LIfZpCtiX?usp=drive_link"}, {"layer1": "3. Video", "layer2": "Quảng cáo (TVC)", "name": "Quảng cáo (TVC)", "link": "https://drive.google.com/drive/folders/1DgnbFWRdMrGTASmfilzJJf8itT85lxD1?usp=drive_link"}, {"layer1": "3. Video", "layer2": "Video Social (Reels/TikTok)", "name": "Video Social (Reels/TikTok)", "link": "https://drive.google.com/drive/folders/1Bxm_QaAOrsp1oRK327EN8F7gB8qafEA6?usp=drive_link"}, {"layer1": "3. Video", "layer2": "Video truyền hình", "name": "Video truyền hình", "link": "https://drive.google.com/drive/folders/1s7SA-5XNvCODhSa5FX33p8PgdB25UbwF?usp=drive_link"}, {"layer1": "3. Video", "layer2": "Video sưu tầm", "name": "Video sưu tầm", "link": "https://drive.google.com/drive/folders/1w213dq_3-BSxof2JoYRi_gRrmKri_U-O?usp=drive_link"}, {"layer1": "4. Tài liệu hỗ trợ", "layer2": "Thông tin sản phẩm", "name": "2. TÀI LIỆU", "link": "https://drive.google.com/drive/folders/165A2CAG1NB_ZonnWzSHtIfAPYlNlUsFn?usp=drive_link"}, {"layer1": "4. Tài liệu hỗ trợ", "layer2": "Thông tin sản phẩm", "name": "1.1. Bài viết Website", "link": "https://drive.google.com/drive/folders/1QL64H6l3J3esAbLfhoSgChamq5Bm3Obt?usp=drive_link"}, {"layer1": "4. Tài liệu hỗ trợ", "layer2": "Thông tin sản phẩm", "name": "1.2. Bài viết Fanpage", "link": "https://drive.google.com/drive/folders/1xsAgeIrKbWEFY8O2dU5zP7IOxig3mVJH?usp=drive_link"}, {"layer1": "4. Tài liệu hỗ trợ", "layer2": "Báo chí truyền thông", "name": "Báo Quốc tế - International Press (BQT)", "link": "https://drive.google.com/drive/folders/1Oj1Mi1Knx32fLIzTmhGENLgdWf4UMbsg?usp=drive_link"}, {"layer1": "4. Tài liệu hỗ trợ", "layer2": "Báo chí truyền thông", "name": "Báo tiếng Việt - Vietnamese Press (BVN)", "link": "https://drive.google.com/drive/folders/1AXkNiWpS1qjYum13ZLtXUAQ0wdo7OZqI?usp=drive_link"}, {"layer1": "4. Tài liệu hỗ trợ", "layer2": "Kho Feedback khách hàng", "name": "Kho Feedback khách hàng", "link": "https://drive.google.com/drive/folders/10zjeiDjrOl-XOIdL4rpYOn3CPyDkvRhN?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Profile, Catalogue - ENG", "name": "Catalog Tiếng Anh", "link": "https://drive.google.com/drive/folders/1O21HlBxCeaWuCt6cFfu8HIPm-bVqlM6f?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Profile, Catalogue - ENG", "name": "Profile Tiếng Anh", "link": "https://drive.google.com/drive/folders/1RALUnOfsgw93px1UMmlAQcD5TDUk6lM7?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Tờ rơi Quốc tế", "name": "Tờ rơi Quốc tế", "link": "https://drive.google.com/drive/folders/1dkCtIpG5VJL9WMTjiZ8itFvrtaRsy8yX?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Tờ rơi Quốc tế", "name": "Tờ rơi Tiếng Anh", "link": "https://drive.google.com/drive/folders/11TDc08WMt5NcPZ0Zu8fAAOJEDqTsvpsU?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Product Information", "name": "Product Information", "link": "https://drive.google.com/drive/folders/1dbvAa1kXtDpw0q8-F47CT4yFULEMDst5?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Amazon", "name": "Natural All Purpose Cleaner Spray", "link": "https://drive.google.com/drive/folders/1dX6K8ETMNvTDGxa_1No1wcnO4gpaLR5A?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Amazon", "name": "Natural Floor Cleaner Lime & Lemongrass", "link": "https://drive.google.com/drive/folders/1ZMwTBXmI8WTYwgQJrXL6AVUQmjTaEUlK?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Amazon", "name": "Natural Laundry Detergent", "link": "https://drive.google.com/drive/folders/17ANcH-3bg7L0mCrxrwL0D_d1e2UTfDY3?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Amazon", "name": "Natural Dish Soap Tropical Pineapple Scent", "link": "https://drive.google.com/drive/folders/1bsf6xBkGL8iiYP4Hdnw1diDZiosW9POq?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Amazon", "name": "Natural Foam Hand Wash Tangerine", "link": "https://drive.google.com/drive/folders/1U2YweIU6AcJrA0Yv5YsyxaDr9bcLtiiJ?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Amazon", "name": "Natural Toilet Bowl Cleaner", "link": "https://drive.google.com/drive/folders/1Msx68dhtnthImpNhWOH7szHutQsWvcdi?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "Fuwa - ECOMMERCE", "link": "https://drive.google.com/drive/folders/1XWR-gNeWJziKvZQVevyz6hJkEQBrjGPU?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "Fuwa x Amazon", "link": "https://drive.google.com/drive/folders/1Vro3ffvsjktwkFk4eUuNcm3mL_OC614R?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "Fuwa x Canada", "link": "https://drive.google.com/drive/folders/1urXrZGAVGmCg4dk1GUB4suuSVWu2Q8ds?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "Fuwa x China", "link": "https://drive.google.com/drive/folders/1tojuWOAG0LJA-XBqEfYeiJRYjwF6zoow?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "Fuwa x Germany", "link": "https://drive.google.com/drive/folders/1g4eyPkneklPL2QT0A7Eib3Qy_OkSUkQJ?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "Fuwa x India", "link": "https://drive.google.com/drive/folders/19U3gKc-g3-fQ-WgKqR33N5E0VLhgz7eQ?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "Fuwa x Italy", "link": "https://drive.google.com/drive/folders/1rk-GvDMT9Rv1873safhDOuRA37R9fan-?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "Fuwa x Malaysia", "link": "https://drive.google.com/drive/folders/15ftsqy70uOByBPvrJIROLT8a_LvvBn2n?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "Fuwa x Singapore", "link": "https://drive.google.com/drive/folders/1eN6MZqE7eoppsKGOouk1sbv300VF-TuW?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "Fuwa x USA", "link": "https://drive.google.com/drive/folders/1mtAhXukFqg1AWfRyMU34WhO3zOaweXmR?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "Fuwa x Vietnam Agrifood Virtual Expo", "link": "https://drive.google.com/drive/folders/1hOQWMB6TqaeDxI96Zoj_aruzUfIbyVRH?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "FUWAX AEON MALL", "link": "https://drive.google.com/drive/folders/1Y1QtXip9a0Yc8f4SJLebM58btQ65mTEn?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "FUWAX THAI LAN", "link": "https://drive.google.com/drive/folders/189n-yVuuXdAteiPTtMq0hiarmY9GW5un?usp=drive_link"}, {"layer1": "6. Tư liệu quốc tế", "layer2": "Fuwa3e trên thế giới", "name": "Social Impact Program - UNDP sponsored", "link": "https://drive.google.com/drive/folders/1Csd-0wXv2EzkoXLb4jDUW11NIDj0pSBp?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Hỗ trợ bán hàng", "name": "Hỗ trợ bán hàng", "link": "https://drive.google.com/drive/folders/1f3mYg2fsbhdwW6Ot0gKgdDN0a13-VMEk?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Hỗ trợ điểm bán", "name": "Hỗ trợ điểm bán", "link": "https://drive.google.com/drive/folders/1kb7_JO0wK34wTW7mUGXZ-Zs7HXu9ZSTp?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Quy định phá giá", "name": "Quy định phá giá", "link": "https://drive.google.com/drive/folders/1BZFzJek8DGBeNiCwF4vjAzhPpTGL5QJ6?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Chương trình khuyến mại", "name": "Chương trình khuyến mại", "link": "https://drive.google.com/drive/folders/1dRIAN3XgHrPiPMChg1d2-fnx_DTgtRgX?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Poster Vinh danh NPP, ĐL", "name": "Poster Vinh danh NPP, ĐL", "link": "https://drive.google.com/drive/folders/1v6lc9Zf5XmpeHwXwrTxDPAfPudkqhMqB?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Chứng nhận Fuwa3e", "name": "1. TCCS FUWA3E_SCAN", "link": "https://drive.google.com/drive/folders/1qKRFG61FI_aB3gmIMtpISJy-4qUEppw6?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Chứng nhận Fuwa3e", "name": "2. Enzyme Cleaner (Homecare) - Kiểm nghiệm", "link": "https://drive.google.com/drive/folders/15HZBaeOpSnSSZgaW6cynhkoDAc747Gtt?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Chứng nhận Fuwa3e", "name": "3. Car Fresh - Kiểm nghiệm", "link": "https://drive.google.com/drive/folders/1gEbvsnPxIGUL2UuaC86KVbHdHow8Ha1V?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Chứng nhận Fuwa3e", "name": "4. Baby Care - Kiểm nghiệm", "link": "https://drive.google.com/drive/folders/1aNm5TRz3K6k-7H8GI5S7n2-xY-KIwi83?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Chứng nhận Fuwa3e", "name": "2. Giải thưởng Fuwa", "link": "https://drive.google.com/drive/folders/1ezQvbbuwtWcvZRcinLMx-WTB7qs3ab4G?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Chứng nhận Fuwa3e", "name": "3. Tiêu chuẩn sản xuất (ISO, HACCP)", "link": "https://drive.google.com/drive/folders/1DqKprjkHYp6pnBmh5R9t2zV5b8npZ5dv?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Chính sách đại lý + bảng giá", "name": "1. Bảng giá sản phẩm", "link": "https://drive.google.com/drive/folders/1jibTtVFan5S2EZ-DV0LuJOXoDY40bfDR?usp=drive_link"}, {"layer1": "6. Thông báo, quy định", "layer2": "Chính sách đại lý + bảng giá", "name": "POSTER", "link": "https://drive.google.com/drive/folders/1oVIUAs5txOIVC5ggykgZnWoQ6ZnvyQ1b?usp=drive_link"}, {"layer1": "I. TƯ LIỆU SỰ KIỆN", "layer2": "Chính sách đại lý + bảng giá", "name": "I. TƯ LIỆU SỰ KIỆN", "link": "https://drive.google.com/drive/folders/1GFZiycKXdbrdrHccdE3VmXdRPQ62bqJB?usp=drive_link"}, {"layer1": "II. TƯ LIỆU CHƯƠNG TRÌNH KHUYẾN MẠI", "layer2": "Chính sách đại lý + bảng giá", "name": "II. TƯ LIỆU CHƯƠNG TRÌNH KHUYẾN MẠI", "link": "https://drive.google.com/drive/folders/1DwVXjgJ8UsagQAA2FrEziD1BanabKBAE?usp=drive_link"}]
+</script>
+
+<script>
+const DATA = JSON.parse(document.getElementById('dataset').textContent);
+
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+const chipsBar = document.getElementById('chipsBar');
+
+const SUGGESTIONS = [
+  "Logo thương hiệu",
+  "Ảnh sản phẩm CarFresh",
+  "Catalogue sản phẩm",
+  "Bảng giá sản phẩm",
+  "Video quảng cáo",
+  "Chứng nhận chất lượng",
+  "Profile công ty"
+];
+
+function addSuggestionChips(list){
+  chipsBar.innerHTML = "";
+  list.forEach(text=>{
+    const c = document.createElement('div');
+    c.className = 'chip';
+    c.textContent = text;
+    c.onclick = () => { inputEl.value = text; sendMessage(); };
+    chipsBar.appendChild(c);
+  });
+}
+addSuggestionChips(SUGGESTIONS);
+
+function scrollDown(){ messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+function addUserMessage(text){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg user';
+  wrap.innerHTML = `<div class="avatar user">B</div><div class="bubble"></div>`;
+  wrap.querySelector('.bubble').textContent = text;
+  messagesEl.appendChild(wrap);
+  scrollDown();
+}
+
+function addBotTyping(){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.id = 'typingMsg';
+  wrap.innerHTML = `<div class="avatar bot">F</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  messagesEl.appendChild(wrap);
+  scrollDown();
+}
+
+function removeTyping(){
+  const t = document.getElementById('typingMsg');
+  if(t) t.remove();
+}
+
+function addBotMessage(text, items){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = text;
+  wrap.innerHTML = `<div class="avatar bot">F</div>`;
+  wrap.appendChild(bubble);
+
+  if(items && items.length){
+    const results = document.createElement('div');
+    results.className = 'results';
+    items.forEach(it=>{
+      const a = document.createElement('a');
+      a.className = 'result-card';
+      a.href = it.link;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.innerHTML = `
+        <div class="result-ico">📁</div>
+        <div class="result-text">
+          <div class="rname"></div>
+          <div class="rpath"></div>
+        </div>
+        <div class="result-arrow">↗</div>
+      `;
+      a.querySelector('.rname').textContent = it.name;
+      a.querySelector('.rpath').textContent = (it.layer1 ? it.layer1 + ' › ' : '') + (it.layer2 || '');
+      results.appendChild(a);
+    });
+    wrap.appendChild(results);
+  }
+  messagesEl.appendChild(wrap);
+  scrollDown();
+}
+
+function normalize(str){
+  return (str||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/đ/g,'d')
+    .trim();
+}
+
+// Lightweight local keyword pre-filter, used to shrink context sent to the model
+function localMatch(query, limit){
+  const q = normalize(query);
+  const terms = q.split(/\s+/).filter(Boolean);
+  if(terms.length === 0) return [];
+  const totalWeight = terms.reduce((sum,t)=>sum+t.length, 0);
+
+  const scored = DATA.map(item=>{
+    const hay = normalize(`${item.layer1} ${item.layer2} ${item.name}`);
+    let score = 0;
+    terms.forEach(t=>{ if(hay.includes(t)) score += t.length; });
+    if(hay.includes(q) && q.length>2) score += q.length * 1.5; // thưởng khi khớp nguyên cụm
+    return {item, score};
+  })
+    // chỉ giữ kết quả khớp ĐỦ MẠNH với toàn bộ câu hỏi (>=60% trọng số từ khóa),
+    // tránh tình trạng khớp lẻ tẻ 1 từ rồi trộn lẫn sản phẩm không liên quan
+    .filter(s=>s.score > 0 && (s.score/totalWeight) >= 0.6)
+    .sort((a,b)=>b.score-a.score)
+    .slice(0, limit)
+    .map(s=>s.item);
+  return scored;
+}
+
+// Ban demo nay chay HOAN TOAN OFFLINE bang tim kiem tu khoa cuc bo,
+// khong goi API ben ngoai, nen mo file .html nay truc tiep tren may van hoat dong binh thuong.
+// Ban Zalo (server.js) moi la ban dung Claude that de hieu ngon ngu tu nhien, vi no chay
+// phia server voi API key that, khong bi trinh duyet chan nhu file tinh nay.
+async function askAssistant(userText){
+  await new Promise(r => setTimeout(r, 350)); // hieu ung "dang go..."
+
+  const candidates = localMatch(userText, 5);
+
+  if(candidates.length === 0){
+    return {
+      reply: `Mình chưa tìm thấy mục nào khớp với "${userText}". Bạn thử mô tả cụ thể hơn nhé — ví dụ dòng sản phẩm (Homecare/CarFresh/Babycare/Refill) hoặc loại tài liệu (logo, ảnh, catalogue, video, bảng giá, chứng nhận...).`,
+      items: []
+    };
+  }
+
+  return {
+    reply: `Mình tìm thấy ${candidates.length} mục phù hợp với "${userText}":`,
+    items: candidates
+  };
+}
+
+let busy = false;
+async function sendMessage(){
+  const text = inputEl.value.trim();
+  if(!text || busy) return;
+  busy = true;
+  sendBtn.disabled = true;
+  inputEl.value = '';
+  addUserMessage(text);
+  addBotTyping();
+  try{
+    const result = await askAssistant(text);
+    removeTyping();
+    addBotMessage(result.reply || '', result.items || []);
+  }catch(err){
+    removeTyping();
+    addBotMessage("Có lỗi khi kết nối trợ lý, bạn thử lại sau ít phút nhé.", []);
+    console.error(err);
+  }
+  busy = false;
+  sendBtn.disabled = false;
+  inputEl.focus();
+}
+
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keydown', e=>{ if(e.key === 'Enter') sendMessage(); });
+
+// Greeting
+addBotMessage("Chào bạn! Mình là trợ lý tài liệu của FUWA3e 🍍. Bạn cần link logo, ảnh sản phẩm, catalogue, bảng giá hay chứng nhận nào, cứ nhắn cho mình nhé!", []);
+</script>
+</body>
+</html>
